@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Zoom Dashboard</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <h1>Zoom Meetings</h1>
+  <table>
+    <tr>
+      <th>Topic</th>
+      <th>Start Time</th>
+      <th>Duration (mins)</th>
+    </tr>
+    <% meetings.forEach(meeting => { %>
+      <tr>
+        <td><%= meeting.topic %></td>
+        <td><%= new Date(meeting.start_time).toLocaleString() %></td>
+        <td><%= meeting.duration %></td>
+      </tr>
+    <% }) %>
+  </table>
+</body>
+</html>
