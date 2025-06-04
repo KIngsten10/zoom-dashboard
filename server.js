@@ -1,24 +1,16 @@
-const fs = require('fs');
-const https = require('https');
 const express = require('express');
 const axios = require('axios');
 require('dotenv').config();
 
 const app = express();
-const port = 3000;
-
-// Load SSL cert and key
-const options = {
-  key: fs.readFileSync('./certs/key.pem'),
-  cert: fs.readFileSync('./certs/cert.pem'),
-};
+const PORT = process.env.PORT || 3000;
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 
 let accessToken = null;
 
-// Function to get Zoom access token (server-to-server)
+// Get Zoom access token
 async function getAccessToken() {
   try {
     const res = await axios.post('https://zoom.us/oauth/token', null, {
@@ -32,7 +24,7 @@ async function getAccessToken() {
       },
     });
 
-    console.log('Access Token:', res.data.access_token); // Log token
+    console.log('Access Token:', res.data.access_token);
     return res.data.access_token;
   } catch (err) {
     console.error('Error getting token:', err.response?.data || err.message);
@@ -64,7 +56,7 @@ app.get('/', async (req, res) => {
   }
 });
 
-// Start HTTPS server
-https.createServer(options, app).listen(port, () => {
-  console.log(`Zoom Dashboard running at https://localhost:${port}`);
+// Start server
+app.listen(PORT, () => {
+  console.log(`Zoom Dashboard running on port ${PORT}`);
 });
