@@ -2,23 +2,98 @@
 <html>
 <head>
   <title>Zoom Dashboard</title>
-  <link rel="stylesheet" href="/style.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <h1>Zoom Meetings</h1>
-  <table>
-    <tr>
-      <th>Topic</th>
-      <th>Start Time</th>
-      <th>Duration (mins)</th>
-    </tr>
-    <% meetings.forEach(meeting => { %>
-      <tr>
-        <td><%= meeting.topic %></td>
-        <td><%= new Date(meeting.start_time).toLocaleString() %></td>
-        <td><%= meeting.duration %></td>
-      </tr>
-    <% }) %>
-  </table>
+<body class="bg-gray-100 font-sans p-4">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold">Zoom Meetings</h1>
+    <div class="space-x-2">
+      <select id="filter" onchange="filterMeetings()" class="px-3 py-2 border rounded">
+        <option value="all" <%= selectedFilter === 'all' ? 'selected' : '' %>>All</option>
+        <option value="today" <%= selectedFilter === 'today' ? 'selected' : '' %>>Today</option>
+        <option value="week" <%= selectedFilter === 'week' ? 'selected' : '' %>>This Week</option>
+        <option value="month" <%= selectedFilter === 'month' ? 'selected' : '' %>>This Month</option>
+      </select>
+      <button onclick="toggleModal()" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition">
+        Schedule New Meeting
+      </button>
+    </div>
+  </div>
+
+  <!-- Meetings Table -->
+  <div class="overflow-x-auto">
+    <table id="meetingsTable" class="min-w-full bg-white rounded shadow overflow-hidden">
+      <thead class="bg-gray-200 text-gray-600 uppercase text-sm">
+        <tr>
+          <th class="py-2 px-4 text-left">Topic</th>
+          <th class="py-2 px-4 text-left">Start Time</th>
+          <th class="py-2 px-4 text-left">Duration</th>
+          <th class="py-2 px-4 text-left">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% meetings.forEach(meeting => { %>
+          <tr class="border-b hover:bg-gray-100 transition">
+            <td class="py-2 px-4"><%= meeting.topic %></td>
+            <td class="py-2 px-4"><%= new Date(meeting.start_time).toLocaleString() %></td>
+            <td class="py-2 px-4"><%= meeting.duration %> mins</td>
+            <td class="py-2 px-4 space-x-2">
+              <button onclick="showParticipants('<%= meeting.id %>')" class="text-blue-600 hover:underline">Participants</button>
+              <!-- <button class="text-red-600 hover:underline">Delete</button> -->
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Schedule Modal -->
+  <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white p-6 rounded shadow-lg w-96 animate-fade-in">
+      <h2 class="text-xl font-semibold mb-4">Schedule Meeting</h2>
+      <form method="POST" action="/schedule" class="space-y-4">
+        <input name="topic" placeholder="Topic" class="w-full px-3 py-2 border rounded" required />
+        <input name="startTime" type="datetime-local" class="w-full px-3 py-2 border rounded" required />
+        <input name="duration" type="number" placeholder="Duration (mins)" class="w-full px-3 py-2 border rounded" required />
+        <div class="flex justify-end space-x-2">
+          <button type="button" onclick="toggleModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Schedule</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    function toggleModal() {
+      const modal = document.getElementById('modal');
+      modal.classList.toggle('hidden');
+      modal.classList.toggle('flex');
+    }
+
+    function showParticipants(meetingId) {
+      fetch(`/participants/${meetingId}`)
+        .then(res => res.json())
+        .then(data => {
+          alert('Participants:\n' + data.participants.map(p => p.name + ' (' + p.email + ')').join('\n'));
+        })
+        .catch(err => alert('Error fetching participants'));
+    }
+
+    function filterMeetings() {
+      const value = document.getElementById('filter').value;
+      window.location.href = `/?filter=${value}`;
+    }
+  </script>
+
+  <style>
+    .animate-fade-in {
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
 </body>
 </html>
